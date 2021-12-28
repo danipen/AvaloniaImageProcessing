@@ -107,22 +107,46 @@ namespace AvaloniaImageProcessing
                     byte* buffer = (byte*)leftBuffer.Address.ToPointer();
                     byte* copybuffer = (byte*)copyBuffer.Address.ToPointer();
 
-                    for (int x = 0; x < mImage.Size.Width; x++)
+                    for (int x = 0; x < mImage.Size.Width - 1; x++)
                     {
                         for (int y = 0; y < mImage.Size.Height; y++)
                         {
                             int loc = (int)(x + y * mImage.Size.Width);
+                            int loc1 = (int)((x+1) + y * mImage.Size.Width);
 
                             byte b = buffer[loc * 4];
                             byte g = buffer[loc * 4 + 1];
                             byte r = buffer[loc * 4 + 2];
                             byte a = buffer[loc * 4 + 3];
 
-                            /*int brightness = Brightness(r, g, b);
+                            byte b1 = buffer[loc1 * 4];
+                            byte g1 = buffer[loc1 * 4 + 1];
+                            byte r1 = buffer[loc1 * 4 + 2];
+                            byte a1 = buffer[loc1 * 4 + 3];
+
+                            int brightness1 = Brightness(r, g, b);
+                            int brightness2 = Brightness(r1, g1, b1);
+
+                            int diff = Math.Abs(brightness1 - brightness2);
 
                             byte targetColor;
+                            if (diff > mLastMousePoint.X.Map(0, Bounds.Width, 2, 60))
+                            {
+                                targetColor = 0;
+                            }
+                            else
+                            {
+                                targetColor = 255;
+                            }
 
-                            if (brightness > mLastMousePoint.X)
+                            copybuffer[loc * 4] = targetColor;
+                            copybuffer[loc * 4 + 1] = targetColor;
+                            copybuffer[loc * 4 + 2] = targetColor;
+                            copybuffer[loc * 4 + 3] = a;
+
+                            //byte targetColor;
+
+                            /*if (brightness > mLastMousePoint.X)
                                 targetColor = 255;
                             else
                                 targetColor = 0;
@@ -130,7 +154,7 @@ namespace AvaloniaImageProcessing
                             copybuffer[loc * 4] = targetColor;
                             copybuffer[loc * 4 + 1] = targetColor;
                             copybuffer[loc * 4 + 2] = targetColor;
-                            copybuffer[loc * 4 + 3] = a;*/
+                            copybuffer[loc * 4 + 3] = a;
 
                             double distance = mLastMousePoint.Distance(x, y);
                             double factor = distance.Map(0, 200, 2, 0);
@@ -138,7 +162,7 @@ namespace AvaloniaImageProcessing
                             copybuffer[loc * 4] = Clamp(b * factor, 0, 255);
                             copybuffer[loc * 4 + 1] = Clamp(g * factor, 0, 255);
                             copybuffer[loc * 4 + 2] = Clamp(r * factor, 0, 255);
-                            copybuffer[loc * 4 + 3] = a;
+                            copybuffer[loc * 4 + 3] = a;*/
                         }
                     }
                 }

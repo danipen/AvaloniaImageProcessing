@@ -52,7 +52,7 @@ namespace AvaloniaImageProcessing
                 var image = WriteableBitmap.Decode(stream);
                 Width = image.Size.Width;
                 Height = image.Size.Height;
-                mImagePanel.Image = image;
+                mImagePanel.SetImage(image);
             }
         }
 
@@ -63,33 +63,26 @@ namespace AvaloniaImageProcessing
 
         class ImagePanel : Panel
         {
-            public WriteableBitmap Image
+            public void SetImage(WriteableBitmap image)
             {
-                get
-                {
-                    return mImage;
-                }
-                set
-                {
-                    mImage = value;
-                    mCopyImage = new WriteableBitmap(
-                        mImage.PixelSize,
-                        mImage.Dpi,
-                        PixelFormat.Bgra8888,
-                        AlphaFormat.Premul);
-                }
+                mImage = image;
+                mImageCopy = new WriteableBitmap(
+                    mImage.PixelSize,
+                    mImage.Dpi,
+                    PixelFormat.Bgra8888,
+                    AlphaFormat.Premul);
             }
 
             public override void Render(DrawingContext context)
             {
                 base.Render(context);
 
-                if (Image == null)
+                if (mImage == null)
                     return;
 
                 ReDrawImage();
 
-                context.DrawImage(mCopyImage, new Rect(0, 0, mCopyImage.Size.Width, mCopyImage.Size.Height));
+                context.DrawImage(mImageCopy, new Rect(0, 0, mImageCopy.Size.Width, mImageCopy.Size.Height));
             }
 
             protected override void OnPointerMoved(PointerEventArgs e)
@@ -102,24 +95,24 @@ namespace AvaloniaImageProcessing
             private unsafe void ReDrawImage()
             {
                 using (var leftBuffer = mImage.Lock())
-                using (var copyBuffer = mCopyImage.Lock())
+                using (var copyBuffer = mImageCopy.Lock())
                 {
                     byte* buffer = (byte*)leftBuffer.Address.ToPointer();
                     byte* copybuffer = (byte*)copyBuffer.Address.ToPointer();
 
-                    for (int x = 0; x < mImage.Size.Width - 1; x++)
+                    for (int x = 0; x < mImage.Size.Width/* - 1*/; x++)
                     {
                         for (int y = 0; y < mImage.Size.Height; y++)
                         {
                             int loc = (int)(x + y * mImage.Size.Width);
-                            int loc1 = (int)((x+1) + y * mImage.Size.Width);
+                            //int loc1 = (int)((x+1) + y * mImage.Size.Width);
 
                             byte b = buffer[loc * 4];
                             byte g = buffer[loc * 4 + 1];
                             byte r = buffer[loc * 4 + 2];
                             byte a = buffer[loc * 4 + 3];
 
-                            byte b1 = buffer[loc1 * 4];
+                            /*byte b1 = buffer[loc1 * 4];
                             byte g1 = buffer[loc1 * 4 + 1];
                             byte r1 = buffer[loc1 * 4 + 2];
                             byte a1 = buffer[loc1 * 4 + 3];
@@ -154,7 +147,7 @@ namespace AvaloniaImageProcessing
                             copybuffer[loc * 4] = targetColor;
                             copybuffer[loc * 4 + 1] = targetColor;
                             copybuffer[loc * 4 + 2] = targetColor;
-                            copybuffer[loc * 4 + 3] = a;
+                            copybuffer[loc * 4 + 3] = a;*/
 
                             double distance = mLastMousePoint.Distance(x, y);
                             double factor = distance.Map(0, 200, 2, 0);
@@ -162,7 +155,7 @@ namespace AvaloniaImageProcessing
                             copybuffer[loc * 4] = Clamp(b * factor, 0, 255);
                             copybuffer[loc * 4 + 1] = Clamp(g * factor, 0, 255);
                             copybuffer[loc * 4 + 2] = Clamp(r * factor, 0, 255);
-                            copybuffer[loc * 4 + 3] = a;*/
+                            copybuffer[loc * 4 + 3] = a;
                         }
                     }
                 }
@@ -184,26 +177,26 @@ namespace AvaloniaImageProcessing
 
             Point mLastMousePoint;
             WriteableBitmap mImage;
-            WriteableBitmap mCopyImage;
+            WriteableBitmap mImageCopy;
         }
         ImagePanel mImagePanel;
     }
 
-        static class ExtensionMethods
+    static class ExtensionMethods
+    {
+        public static double Map (this double value, double fromSource, double toSource, double fromTarget, double toTarget)
         {
-            public static double Map (this double value, double fromSource, double toSource, double fromTarget, double toTarget)
-            {
-                return (value - fromSource) / (toSource - fromSource) * (toTarget - fromTarget) + fromTarget;
-            }
-
-            public static double Distance(this Point p1, Point p2)
-            {
-                return Math.Sqrt(Math.Pow(p1.X - p2.X, 2) + Math.Pow(p1.Y - p2.Y, 2));
-            }
-
-            public static double Distance(this Point p1, double x, double y)
-            {
-                return Math.Sqrt(Math.Pow(p1.X - x, 2) + Math.Pow(p1.Y - y, 2));
-            }
+            return (value - fromSource) / (toSource - fromSource) * (toTarget - fromTarget) + fromTarget;
         }
+
+        public static double Distance(this Point p1, Point p2)
+        {
+            return Math.Sqrt(Math.Pow(p1.X - p2.X, 2) + Math.Pow(p1.Y - p2.Y, 2));
+        }
+
+        public static double Distance(this Point p1, double x, double y)
+        {
+            return Math.Sqrt(Math.Pow(p1.X - x, 2) + Math.Pow(p1.Y - y, 2));
+        }
+    }
 }

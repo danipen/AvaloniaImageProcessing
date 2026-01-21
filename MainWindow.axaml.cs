@@ -61,7 +61,7 @@ namespace AvaloniaImageProcessing
             AvaloniaXamlLoader.Load(this);
         }
 
-        class ImagePanel : Panel
+        class ImagePanel : UserControl
         {
             public void SetImage(WriteableBitmap image)
             {
